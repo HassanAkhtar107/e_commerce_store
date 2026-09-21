@@ -11,28 +11,23 @@ from users.api.views import (
     userProfileView,
     deleteUserView,
     AdminUserViewSet,
-    SubscriptionPlanViewSet,
-    UserSubscriptionViewSet,
-    UserPaymentMethodViewSet
+    ShippingAddressViewSet
 )
-
-from templates.api.views import (
-    TemplatesView,
-    FieldsView,
-    GeneratedDocumentViewSet,
-    CompanyViewSet,
-    CompanyFieldsViewSet,
-    TemplateChapterViewSet,
+from products.views import (
     CategoryViewSet,
-    FixedFieldsByAdminViewSet
+    BrandViewSet,
+    ProductViewSet
 )
+from cart.views import CartViewSet
+from orders.views import OrderViewSet
 
 if settings.DEBUG:
     router = DefaultRouter()
 else:
     router = SimpleRouter()
 
-router.register("users", UserViewSet)
+# Auth & User Routes
+router.register("users", UserViewSet, basename="users")
 router.register("signup", SignupViewSet, basename="signup")
 router.register("login", LoginViewSet, basename="login")
 router.register("verify-otp", verifyOtpView, basename="verify-otp")
@@ -40,23 +35,16 @@ router.register("send-otp", sendOtpView, basename="send-otp")
 router.register("reset-email", resetEmailView, basename="reset-email")
 router.register("reset-password", resetPasswordView, basename="reset-password")
 router.register("user-profile", userProfileView, basename="user-profile")
+router.register("addresses", ShippingAddressViewSet, basename="addresses")
 router.register("delete-user", deleteUserView, basename="delete-user")
 router.register("admin_users", AdminUserViewSet, basename="admin-users")
 
-# subscriptions
-router.register("subscription-plans", SubscriptionPlanViewSet, basename="subscription-plans")
-router.register("user-subscriptions", UserSubscriptionViewSet, basename="user-subscriptions")
-router.register("payment-methods", UserPaymentMethodViewSet, basename="payment-methods")
-# templates
-router.register("templates", TemplatesView, basename="template")
-router.register("fields", FieldsView, basename="field")
-router.register("generated-documents", GeneratedDocumentViewSet, basename="generated-document")
-router.register("company", CompanyViewSet, basename="companies")
-router.register("company-fields", CompanyFieldsViewSet, basename="company-fields")
-router.register("chapters", TemplateChapterViewSet, basename="chapter")
-router.register("categories", CategoryViewSet, basename="category")
-router.register("fixed-fields-by-admin", FixedFieldsByAdminViewSet, basename="fixed-fields-by-admin")
-
+# E-Commerce Routes
+router.register("categories", CategoryViewSet, basename="categories")
+router.register("brands", BrandViewSet, basename="brands")
+router.register("products", ProductViewSet, basename="products")
+router.register("cart", CartViewSet, basename="cart")
+router.register("orders", OrderViewSet, basename="orders")
 
 app_name = "api"
 urlpatterns = router.urls

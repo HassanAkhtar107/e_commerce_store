@@ -3,58 +3,51 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-USER_TYPE=(
-    ("USER","USER"),
-    ("ADMIN","ADMIN"),
+USER_TYPE = (
+    ("USER", "USER"),
+    ("ADMIN", "ADMIN"),
 )
+
 
 class User(AbstractUser):
     """
-    Default custom user model for bostit_03082023.
-    If adding fields that need to be filled at user signup,
-    check forms.SignupForm and forms.SocialSignupForms accordingly.
+    Custom User Model for E-Commerce Store
     """
-
-    #: First and last name do not cover name patterns around the globe
     name = models.CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore
     last_name = None  # type: ignore
     is_verified = models.BooleanField(default=False)
     otp_counter = models.IntegerField(default=0)
-    user_type = models.CharField(choices=USER_TYPE,max_length=10,null=True,blank=True)
+    user_type = models.CharField(choices=USER_TYPE, max_length=10, null=True, blank=True, default="USER")
     stripe_customer_id = models.CharField(max_length=255, null=True, blank=True)
-    
+
     def get_absolute_url(self):
-        """Get url for user's detail view.
-
-        Returns:
-            str: URL for user detail.
-
-        """
         return reverse("users:detail", kwargs={"username": self.username})
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    phone_number = models.CharField(max_length=15, null=True, blank=True)
-    profile_photo = models.ImageField(null=True, blank=True)
-    address = models.CharField(max_length=1000, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
-    zipcode = models.CharField(max_length=100, null=True, blank=True)
-    state = models.CharField(max_length=100, null=True, blank=True)
-    country = models.CharField(max_length=100, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payment_methods")
-    stripe_payment_method_id = models.CharField(max_length=255, null=True, blank=True)
-    card_name = models.CharField(max_length=255, null=True, blank=True)
-    last4 = models.CharField(max_length=4, null=True, blank=True)
-    brand = models.CharField(max_length=50, null=True, blank=True)
-    exp_month = models.CharField(max_length=2, null=True, blank=True)
-    exp_year = models.CharField(max_length=4, null=True, blank=True)
-    is_active = models.BooleanField(default=False)
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    profile_photo = models.FileField(upload_to="profiles/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.brand} **** {self.last4}"
+        return f"Profile of {self.user.username}"
+
+
+class ShippingAddress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="shipping_addresses")
+    full_name = models.CharField(max_length=255)
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True, null=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100, default="USA")
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.city}, {self.country}"

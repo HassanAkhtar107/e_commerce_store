@@ -5,9 +5,9 @@ from celery import Celery
 from django.conf import settings
 from celery.schedules import crontab
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "docugen.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "store_core.settings")
 
-app = Celery("docugen")
+app = Celery("store_core")
 app.conf.enable_utc = True
 app.conf.update(timezone=settings.TIME_ZONE)
 

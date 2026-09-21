@@ -49,9 +49,6 @@ django-crontab==0.7.1
 # Development Tools
 django-extensions==3.2.3
 
-# Payment Processing
-stripe==14.4.0
-
 # OTP Authentication
 pyotp==2.9.0
 

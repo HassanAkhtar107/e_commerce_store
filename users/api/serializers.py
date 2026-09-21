@@ -7,17 +7,35 @@ from allauth.account.forms import ResetPasswordForm
 from dj_rest_auth.serializers import PasswordResetSerializer
 from allauth.account import app_settings as allauth_settings
 from django.utils.translation import gettext_lazy as _
-from ..models import *
+from ..models import User, UserProfile, ShippingAddress
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "name", "is_verified","user_type"]
-        
+        fields = ["id", "username", "email", "name", "is_verified", "user_type"]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = "__all__"
+        read_only_fields = ["id"]
+
+
+class ShippingAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingAddress
+        fields = "__all__"
+        read_only_fields = ["id", "user"]
+
+
 class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "name", "email", "password","user_type")
+        fields = ("id", "username", "name", "email", "password", "user_type")
         extra_kwargs = {
             "password": {"write_only": True, "style": {"input_type": "password"}},
             "email": {
@@ -25,8 +43,8 @@ class SignupSerializer(serializers.ModelSerializer):
                 "allow_blank": False,
             },
             "user_type": {
-                "required": True,
-                "allow_blank": False,
+                "required": False,
+                "allow_blank": True,
             },
         }
 
@@ -52,133 +70,61 @@ class SignupSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_type = validated_data.pop("user_type", None)
         password = validated_data.get("password")
+        if not validated_data.get("username"):
+            validated_data["username"] = validated_data.get("email")
+
         user = User(**validated_data)
         if user_type:
-            if user_type == "ADMIN":
+            if user_type.upper() == "ADMIN":
                 user.is_staff = True
                 user.is_superuser = True
             user.user_type = user_type.upper()
         else:
             user.user_type = "USER"
+
         user.set_password(password)
         user.save()
+        UserProfile.objects.create(user=user)
         request = self._get_request()
         setup_user_email(request, user, [])
         return user
 
     def save(self, request=None):
-        """rest_auth passes request so we must override to accept it"""
         return super().save()
-    
-    
-    
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = "__all__"
-        read_only_fields = ["id"]
-        
-        
-class PasswordSerializer(PasswordResetSerializer):
-    """Custom serializer for rest_auth to solve reset password error"""
 
+
+class PasswordSerializer(PasswordResetSerializer):
     password_reset_form_class = ResetPasswordForm
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
-    assigned_templates = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        many=True
-    )
-    assigned_templates_ids = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True,
-        required=False
-    )
     password = serializers.CharField(write_only=True, required=False)
-    has_payment_added = serializers.SerializerMethodField()
-    has_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
-            "id", "username", "name", "email", "user_type", 
-            "is_verified", "assigned_templates", "assigned_templates_ids", 
-            "password", "has_payment_added", "has_subscription"
+            "id", "username", "name", "email", "user_type",
+            "is_verified", "password"
         ]
 
-    def get_has_payment_added(self, obj):
-        return obj.payment_methods.exists()
-
-    def get_has_subscription(self, obj):
-        return obj.subscriptions.filter(status="active").exists()
-
     def create(self, validated_data):
-        assigned_templates_ids = validated_data.pop('assigned_templates_ids', [])
         password = validated_data.pop('password', None)
-        
         user = User.objects.create(**validated_data)
         if password:
             user.set_password(password)
         else:
             user.set_unusable_password()
-            
+
         user.is_verified = True
         user.save()
-        
-        if assigned_templates_ids:
-            from templates.models import Templates
-            templates = Templates.objects.filter(id__in=assigned_templates_ids)
-            for t in templates:
-                t.assigned_users.add(user)
-            
+        UserProfile.objects.create(user=user)
         return user
 
     def update(self, instance, validated_data):
-        assigned_templates_ids = validated_data.pop('assigned_templates_ids', None)
         password = validated_data.pop('password', None)
-        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-            
         if password:
             instance.set_password(password)
-            
         instance.save()
-        
-        if assigned_templates_ids is not None:
-            from templates.models import Templates
-            # Clear existing assignments first
-            assigned_templates = instance.assigned_templates.all()
-            for t in assigned_templates:
-                t.assigned_users.remove(instance)
-            
-            # Add new assignments
-            new_templates = Templates.objects.filter(id__in=assigned_templates_ids)
-            for t in new_templates:
-                t.assigned_users.add(instance)
-            
         return instance
-
-
-class SubscriptionPlanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SubscriptionPlan
-        fields = "__all__"
-
-class UserSubscriptionSerializer(serializers.ModelSerializer):
-    plan_details = SubscriptionPlanSerializer(source="plan", read_only=True)
-    class Meta:
-        model = UserSubscription
-        fields = "__all__"
-
-class UserPaymentMethodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserPaymentMethod
-        fields = ["id", "user", "stripe_payment_method_id", "card_name", "last4", "brand", "exp_month", "exp_year", "is_active", "created_at"]
-        read_only_fields = ["id", "last4", "brand", "exp_month", "exp_year", "is_active", "created_at"]
-        extra_kwargs = {
-            "stripe_payment_method_id": {"required": True}
-        }
-
-

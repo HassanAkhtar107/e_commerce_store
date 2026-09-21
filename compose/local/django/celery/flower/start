@@ -3,14 +3,4 @@
 set -o errexit
 set -o nounset
 
-worker_ready() {
-    celery -A docugen inspect ping
-}
-
-until worker_ready; do
-  >&2 echo 'Celery workers not available'
-  sleep 1
-done
->&2 echo 'Celery workers is available'
-
-celery -A docugen --broker="${REDIS_URL}" flower
+celery -A store_core flower

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 set -o errexit
-set -o pipefail
 set -o nounset
 
 rm -f './celerybeat.pid'
-celery -A docugen beat -l INFO
+celery -A store_core beat -l INFO

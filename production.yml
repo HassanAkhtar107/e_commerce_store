@@ -57,7 +57,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: docugen_postgres
+    image: ecommerce_store_postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data:Z
       - postgres_data_backups:/backups:z
@@ -72,7 +72,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-    image: docugen_celery_worker
+    image: ecommerce_store_celery_worker
     command: /start-celeryworker
     volumes:
       - .:/app
@@ -87,7 +87,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-    image: docugen_celery_beat
+    image: ecommerce_store_celery_beat
     command: /start-celerybeat
     volumes:
       - .:/app
@@ -102,7 +102,7 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
-    image: docugen_celery_flower
+    image: ecommerce_store_celery_flower
     command: /start-flower
     volumes:
       - .:/app
@@ -114,7 +114,7 @@ services:
     restart: always
 
 volumes:
-  docugen_postgres_data:
+  ecommerce_store_postgres_data:
   static_volume:
   postgres_data:
   postgres_data_backups:

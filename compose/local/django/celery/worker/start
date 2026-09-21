@@ -3,4 +3,4 @@
 set -o errexit
 set -o nounset
 
-celery -A docugen worker -l INFO
+celery -A store_core worker -l INFO
