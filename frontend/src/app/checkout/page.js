@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiLock, FiCheckCircle, FiCreditCard, FiTruck, FiArrowLeft, FiShoppingBag } from "react-icons/fi";
+import { FiCheckCircle, FiTruck, FiArrowLeft, FiShoppingBag, FiCreditCard } from "react-icons/fi";
 import { useCart } from "@/context/CartContext";
 import { api } from "@/Services/api";
 
@@ -18,8 +18,8 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     zipcode: "",
-    country: "United States",
-    paymentMethod: "stripe_demo"
+    country: "Pakistan",
+    paymentMethod: "COD"
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,9 +27,8 @@ export default function CheckoutPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const subtotal = Number(cartTotal || 0);
-  const shipping = subtotal > 50 || subtotal === 0 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
-  const grandTotal = subtotal + shipping + tax;
+  const shipping = subtotal > 2000 || subtotal === 0 ? 0 : 250;
+  const grandTotal = subtotal + shipping;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,8 +38,8 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMsg("");
 
-    if (!formData.fullName || !formData.email || !formData.address) {
-      setErrorMsg("Please fill in all required shipping address fields.");
+    if (!formData.fullName || !formData.email || !formData.address || !formData.phone) {
+      setErrorMsg("Please fill in all required shipping details.");
       return;
     }
 
@@ -53,9 +52,9 @@ export default function CheckoutPage() {
         email: formData.email,
         phone_number: formData.phone,
         shipping_address_text: shippingAddressText,
+        payment_method: formData.paymentMethod
       };
 
-      // Call backend DRF API
       let orderRes;
       try {
         orderRes = await api.createOrder(orderData);
@@ -64,8 +63,9 @@ export default function CheckoutPage() {
         orderRes = {
           order_number: "ORD-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
           total_amount: grandTotal,
-          payment_status: "PAID",
-          order_status: "PROCESSING"
+          payment_method: formData.paymentMethod,
+          payment_status: "PENDING",
+          order_status: "PENDING"
         };
       }
 
@@ -74,7 +74,7 @@ export default function CheckoutPage() {
         clearCart();
       }
     } catch (err) {
-      setErrorMsg(err.message || "Failed to process order. Please try again.");
+      setErrorMsg(err.message || "Failed to place order. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -89,13 +89,13 @@ export default function CheckoutPage() {
           </div>
 
           <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest block">
-            Order Confirmed
+            Order Placed Successfully
           </span>
 
           <h1 className="text-3xl font-black text-white">Thank You for Your Order!</h1>
           
           <p className="text-slate-300 text-sm max-w-md mx-auto">
-            Your order <span className="font-extrabold text-blue-400">{completedOrder.order_number}</span> has been received and is currently being processed. A confirmation receipt has been sent to your email.
+            Your order <span className="font-extrabold text-blue-400">{completedOrder.order_number}</span> has been confirmed via <span className="font-bold text-emerald-400">{completedOrder.payment_method === "COD" ? "Cash on Delivery" : "Online Payment"}</span>.
           </p>
 
           <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400 space-y-2 max-w-sm mx-auto text-left">
@@ -104,12 +104,16 @@ export default function CheckoutPage() {
               <span className="font-bold text-slate-200">{completedOrder.order_number}</span>
             </div>
             <div className="flex justify-between">
-              <span>Status:</span>
-              <span className="font-bold text-emerald-400">{completedOrder.order_status || "Processing"}</span>
+              <span>Payment Method:</span>
+              <span className="font-bold text-emerald-400">{completedOrder.payment_method === "COD" ? "Cash on Delivery" : "Paid"}</span>
             </div>
             <div className="flex justify-between">
-              <span>Total Paid:</span>
-              <span className="font-bold text-white">${Number(completedOrder.total_amount || grandTotal).toFixed(2)}</span>
+              <span>Order Status:</span>
+              <span className="font-bold text-amber-400">{completedOrder.order_status || "Pending"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Total Amount:</span>
+              <span className="font-bold text-white">Rs. {Number(completedOrder.total_amount || grandTotal).toLocaleString()}</span>
             </div>
           </div>
 
@@ -134,7 +138,7 @@ export default function CheckoutPage() {
         <span>Back to Shopping Cart</span>
       </Link>
 
-      <h1 className="text-3xl font-black text-white mb-8">Checkout</h1>
+      <h1 className="text-3xl font-black text-white mb-8">Checkout / Place Order</h1>
 
       {errorMsg && (
         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold mb-6">
@@ -150,7 +154,7 @@ export default function CheckoutPage() {
           <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
             <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
               <FiTruck className="text-xl text-blue-400" />
-              <h2 className="text-lg font-bold text-white">Shipping Address</h2>
+              <h2 className="text-lg font-bold text-white">Customer & Shipping Details</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -160,7 +164,7 @@ export default function CheckoutPage() {
                   type="text"
                   name="fullName"
                   required
-                  placeholder="John Doe"
+                  placeholder="Hassan Akhtar"
                   value={formData.fullName}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
@@ -173,7 +177,7 @@ export default function CheckoutPage() {
                   type="email"
                   name="email"
                   required
-                  placeholder="john@example.com"
+                  placeholder="hassan@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
@@ -181,11 +185,12 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Phone Number</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Phone Number *</label>
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="+1 (555) 000-0000"
+                  required
+                  placeholder="+92 300 1234567"
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
@@ -193,27 +198,25 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Country</label>
-                <select
-                  name="country"
-                  value={formData.country}
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">City *</label>
+                <input
+                  type="text"
+                  name="city"
+                  required
+                  placeholder="Lahore / Karachi / Islamabad"
+                  value={formData.city}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
-                >
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Germany">Germany</option>
-                </select>
+                />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Street Address *</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Delivery Address *</label>
                 <input
                   type="text"
                   name="address"
                   required
-                  placeholder="123 Shopping Avenue, Suite 400"
+                  placeholder="House / Street / Apartment details"
                   value={formData.address}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
@@ -221,24 +224,23 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">City</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Postal Code</label>
                 <input
                   type="text"
-                  name="city"
-                  placeholder="New York"
-                  value={formData.city}
+                  name="zipcode"
+                  placeholder="54000"
+                  value={formData.zipcode}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Postal / Zip Code</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Country</label>
                 <input
                   type="text"
-                  name="zipcode"
-                  placeholder="10001"
-                  value={formData.zipcode}
+                  name="country"
+                  value={formData.country}
                   onChange={handleChange}
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500"
                 />
@@ -246,39 +248,70 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Payment Mode Box */}
+          {/* Payment Method Selector */}
           <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-4">
             <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
               <FiCreditCard className="text-xl text-blue-400" />
               <h2 className="text-lg font-bold text-white">Payment Method</h2>
             </div>
 
-            <div className="p-4 rounded-2xl bg-blue-600/10 border border-blue-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FiLock className="text-blue-400 text-lg" />
-                <div>
-                  <h4 className="text-sm font-bold text-white">Stripe / Express Demo Payment</h4>
-                  <p className="text-xs text-slate-400">Encrypted 256-bit SSL secure checkout.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label
+                onClick={() => setFormData({ ...formData, paymentMethod: "COD" })}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                  formData.paymentMethod === "COD"
+                    ? "bg-blue-600/15 border-blue-500"
+                    : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <FiTruck className="text-blue-400 text-lg" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Cash on Delivery (COD)</h4>
+                    <p className="text-xs text-slate-400">Pay cash when courier delivers.</p>
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs font-bold text-blue-400 bg-blue-500/20 px-3 py-1 rounded-full">ACTIVE</span>
+                {formData.paymentMethod === "COD" && (
+                  <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px]">✓</span>
+                )}
+              </label>
+
+              <label
+                onClick={() => setFormData({ ...formData, paymentMethod: "ONLINE" })}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                  formData.paymentMethod === "ONLINE"
+                    ? "bg-blue-600/15 border-blue-500"
+                    : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <FiCreditCard className="text-indigo-400 text-lg" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Online Payment</h4>
+                    <p className="text-xs text-slate-400">Card / Gateway checkout.</p>
+                  </div>
+                </div>
+                {formData.paymentMethod === "ONLINE" && (
+                  <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px]">✓</span>
+                )}
+              </label>
             </div>
           </div>
 
         </div>
 
-        {/* Order Summary Panel */}
+        {/* Summary Box */}
         <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-6 h-fit">
-          <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-4">Order Review</h2>
+          <h2 className="text-lg font-bold text-white border-b border-slate-800 pb-4">Order Summary</h2>
 
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
             {cartItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between text-xs">
                 <span className="text-slate-300 line-clamp-1 flex-1 pr-2">
-                  {item.quantity}x {item.product?.name || "Product"}
+                  {item.quantity}x {item.product?.name || "Apparel Item"}
                 </span>
                 <span className="font-bold text-slate-100">
-                  ${(Number(item.product?.current_price || item.product?.price || 0) * item.quantity).toFixed(2)}
+                  Rs. {(Number(item.product?.current_price || item.product?.price || 0) * item.quantity).toLocaleString()}
                 </span>
               </div>
             ))}
@@ -287,23 +320,19 @@ export default function CheckoutPage() {
           <div className="border-t border-slate-800 pt-4 space-y-2 text-xs text-slate-400">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-semibold text-slate-200">${subtotal.toFixed(2)}</span>
+              <span className="font-semibold text-slate-200">Rs. {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
-              <span>Shipping</span>
+              <span>Shipping Charges</span>
               <span className="font-semibold text-emerald-400">
-                {shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}
+                {shipping === 0 ? "FREE" : `Rs. ${shipping}`}
               </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax (8%)</span>
-              <span className="font-semibold text-slate-200">${tax.toFixed(2)}</span>
             </div>
           </div>
 
           <div className="border-t border-slate-800 pt-4 flex justify-between items-center text-base font-black text-white">
-            <span>Total</span>
-            <span className="text-2xl text-blue-400">${grandTotal.toFixed(2)}</span>
+            <span>Total Payable</span>
+            <span className="text-2xl text-blue-400">Rs. {grandTotal.toLocaleString()}</span>
           </div>
 
           <button
@@ -311,8 +340,7 @@ export default function CheckoutPage() {
             disabled={isSubmitting}
             className="w-full py-4 rounded-xl font-bold text-xs uppercase tracking-wider text-white btn-gradient flex items-center justify-center gap-2 shadow-xl shadow-blue-500/25 disabled:opacity-50"
           >
-            <FiLock />
-            <span>{isSubmitting ? "Processing Order..." : "Place Order Now"}</span>
+            <span>{isSubmitting ? "Placing Order..." : "Confirm & Place Order"}</span>
           </button>
         </div>
 

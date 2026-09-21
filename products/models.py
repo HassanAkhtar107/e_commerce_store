@@ -42,11 +42,18 @@ class Brand(models.Model):
 
 
 class Product(models.Model):
+    GENDER_CHOICES = (
+        ("MEN", "Men"),
+        ("WOMEN", "Women"),
+        ("UNISEX", "Unisex"),
+    )
+
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     sku = models.CharField(max_length=100, unique=True, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products")
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default="UNISEX")
     description = models.TextField()
     short_description = models.CharField(max_length=500, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -70,6 +77,12 @@ class Product(models.Model):
     @property
     def current_price(self):
         return self.discount_price if self.discount_price and self.discount_price < self.price else self.price
+
+    @property
+    def discount_percentage(self):
+        if self.discount_price and self.discount_price < self.price:
+            return int(round(((self.price - self.discount_price) / self.price) * 100))
+        return 0
 
     def __str__(self):
         return self.name

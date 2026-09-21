@@ -29,8 +29,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     lookup_field = "slug"
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["category__slug", "brand__slug", "is_featured"]
-    search_fields = ["name", "description", "short_description"]
+    filterset_fields = ["gender", "category__slug", "brand__slug", "is_featured"]
+    search_fields = ["name", "description", "short_description", "category__name"]
     ordering_fields = ["price", "created_at", "rating"]
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])

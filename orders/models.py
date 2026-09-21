@@ -23,6 +23,11 @@ class Order(models.Model):
         ("REFUNDED", "Refunded"),
     )
 
+    PAYMENT_METHOD = (
+        ("COD", "Cash on Delivery"),
+        ("ONLINE", "Online Payment"),
+    )
+
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
     order_number = models.CharField(max_length=50, unique=True, editable=False)
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True, blank=True)
@@ -31,6 +36,7 @@ class Order(models.Model):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     shipping_address_text = models.TextField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD, default="COD")
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default="PENDING")
     order_status = models.CharField(max_length=20, choices=ORDER_STATUS, default="PENDING")
     stripe_payment_intent_id = models.CharField(max_length=255, blank=True, null=True)

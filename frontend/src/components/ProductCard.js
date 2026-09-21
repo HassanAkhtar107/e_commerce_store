@@ -11,32 +11,41 @@ export default function ProductCard({ product }) {
   const primaryImage =
     product?.images?.length > 0
       ? product.images[0].image
-      : "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80";
+      : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&auto=format&fit=crop&q=80";
 
   const price = Number(product?.price || 0);
   const discountPrice = product?.discount_price ? Number(product.discount_price) : null;
   const currentPrice = discountPrice || price;
-  const discountPercent = discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0;
+  const discountPercent = product?.discount_percentage || (discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+
+  const genderLabel = product?.gender === "MEN" ? "Men" : product?.gender === "WOMEN" ? "Women" : null;
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden hover:border-blue-500/40 transition-all duration-300 hover:-translate-y-1.5 flex flex-col group relative">
       
-      {/* Discount Badge */}
-      {discountPercent > 0 && (
-        <span className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
-          -{discountPercent}% OFF
+      {/* Top Badges */}
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+        {discountPercent > 0 && (
+          <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
+            {discountPercent}% OFF
+          </span>
+        )}
+        {product?.is_featured && !discountPercent && (
+          <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
+            Featured
+          </span>
+        )}
+      </div>
+
+      {/* Gender Badge */}
+      {genderLabel && (
+        <span className="absolute top-3 right-3 z-10 bg-slate-900/80 backdrop-blur-md border border-slate-700/80 text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">
+          {genderLabel}
         </span>
       )}
 
-      {/* Featured Tag */}
-      {product?.is_featured && !discountPercent && (
-        <span className="absolute top-3 left-3 z-10 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-lg">
-          Featured
-        </span>
-      )}
-
-      {/* Product Image Container */}
-      <Link href={`/products/${product?.slug || product?.id}`} className="relative aspect-square overflow-hidden bg-slate-900/60 block">
+      {/* Image Container */}
+      <Link href={`/products/${product?.slug || product?.id}`} className="relative aspect-4/5 overflow-hidden bg-slate-900/60 block">
         <img
           src={primaryImage}
           alt={product?.name || "Product"}
@@ -45,11 +54,10 @@ export default function ProductCard({ product }) {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </Link>
 
-      {/* Card Content */}
+      {/* Card Body */}
       <div className="p-5 flex flex-col flex-1 justify-between">
         
         <div>
-          {/* Category / Brand */}
           <div className="flex justify-between items-center text-xs text-slate-400 mb-1.5 font-medium">
             <span>{product?.category_detail?.name || product?.category || "General"}</span>
             {product?.brand_detail?.name && (
@@ -57,7 +65,6 @@ export default function ProductCard({ product }) {
             )}
           </div>
 
-          {/* Title */}
           <Link href={`/products/${product?.slug || product?.id}`}>
             <h3 className="font-bold text-slate-100 text-base line-clamp-1 group-hover:text-blue-400 transition-colors">
               {product?.name}
@@ -74,15 +81,15 @@ export default function ProductCard({ product }) {
           </div>
         </div>
 
-        {/* Pricing & Add to Cart Button */}
+        {/* Price & Action */}
         <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-lg font-extrabold text-white">
-              ${currentPrice.toFixed(2)}
+              Rs. {currentPrice.toLocaleString()}
             </span>
             {discountPrice && (
               <span className="text-xs text-slate-500 line-through">
-                ${price.toFixed(2)}
+                Rs. {price.toLocaleString()}
               </span>
             )}
           </div>

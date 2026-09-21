@@ -2,30 +2,31 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { FiStar, FiShoppingBag, FiTruck, FiShield, FiRefreshCw, FiPlus, FiMinus, FiCheck } from "react-icons/fi";
+import { FiStar, FiShoppingBag, FiTruck, FiShield, FiRefreshCw, FiPlus, FiMinus, FiCheck, FiZoomIn } from "react-icons/fi";
 import { useCart } from "@/context/CartContext";
 import { api } from "@/Services/api";
 
 const DEMO_PRODUCT = {
   id: 1,
-  name: "Nexus Pro Wireless Headphones",
-  slug: "nexus-pro-wireless-headphones",
-  category: "Electronics",
-  brand: "Nexus Audio",
-  price: 199.99,
-  discount_price: 149.99,
-  stock: 25,
-  rating: 4.8,
-  num_reviews: 32,
-  description: "Experience pure audio immersion with the Nexus Pro Wireless Headphones. Equipped with hybrid Active Noise Cancellation (ANC), 40mm custom drivers, and up to 40 hours of continuous playback.",
-  short_description: "Premium ANC wireless headphones with studio clarity.",
+  name: "Men's Royal Silk Kurta Pajama Set",
+  slug: "mens-royal-silk-kurta-pajama-set",
+  category: "Kurta Pajama",
+  gender: "MEN",
+  brand: "Heritage Ethnic",
+  price: 120.00,
+  discount_price: 95.00,
+  discount_percentage: 21,
+  stock: 30,
+  rating: 4.9,
+  num_reviews: 28,
+  description: "Handcrafted dupion silk Kurta Pajama set with subtle embroidery on collar and cuffs. Designed for weddings, festivals, and grand celebratory occasions.",
+  short_description: "Traditional silk Kurta Pajama set for men.",
   images: [
-    { image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80" },
-    { image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80" }
+    { image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1000&auto=format&fit=crop&q=80" },
+    { image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=1000&auto=format&fit=crop&q=80" }
   ],
   reviews: [
-    { id: 1, user_name: "Alex M.", rating: 5, comment: "Exceptional sound quality and ANC is top tier! Battery lasts all week.", created_at: "2026-02-10" },
-    { id: 2, user_name: "Sarah K.", rating: 5, comment: "Super comfortable for long work hours and flights.", created_at: "2026-02-14" }
+    { id: 1, user_name: "Rohan S.", rating: 5, comment: "Authentic silk feel and perfect fitting! Received many compliments.", created_at: "2026-02-12" }
   ]
 };
 
@@ -39,6 +40,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [added, setAdded] = useState(false);
+  const [zoomStyle, setZoomStyle] = useState({ display: "none", transformOrigin: "0% 0%" });
 
   useEffect(() => {
     if (params?.slug) {
@@ -57,11 +59,25 @@ export default function ProductDetailPage() {
         }
       }
     } catch (err) {
-      console.warn("Using demo product detail fallback", err);
+      console.warn("Using demo clothing detail fallback", err);
       setSelectedImage(DEMO_PRODUCT.images[0].image);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMouseMove = (e) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomStyle({
+      display: "block",
+      transformOrigin: `${x}% ${y}%`,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setZoomStyle({ display: "none", transformOrigin: "0% 0%" });
   };
 
   const handleAddToCart = () => {
@@ -73,7 +89,8 @@ export default function ProductDetailPage() {
   const price = Number(product.price || 0);
   const discountPrice = product.discount_price ? Number(product.discount_price) : null;
   const currentPrice = discountPrice || price;
-  const mainImg = selectedImage || (product.images?.[0]?.image) || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80";
+  const discountPercent = product.discount_percentage || (discountPrice ? Math.round(((price - discountPrice) / price) * 100) : 0);
+  const mainImg = selectedImage || (product.images?.[0]?.image) || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1000&auto=format&fit=crop&q=80";
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -90,23 +107,37 @@ export default function ProductDetailPage() {
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
         
-        {/* Left: Gallery */}
+        {/* Left: Gallery with Image Zoom */}
         <div className="space-y-4">
-          <div className="glass-card rounded-3xl p-4 overflow-hidden relative aspect-square bg-slate-900 border border-slate-800">
+          <div
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            className="glass-card rounded-3xl p-4 overflow-hidden relative aspect-4/5 bg-slate-900 border border-slate-800 cursor-crosshair group"
+          >
             <img
               src={mainImg}
               alt={product.name}
-              className="w-full h-full object-cover rounded-2xl"
+              className="w-full h-full object-cover rounded-2xl transition-transform duration-200"
+              style={{
+                transform: zoomStyle.display === "block" ? "scale(2.2)" : "scale(1)",
+                transformOrigin: zoomStyle.transformOrigin,
+              }}
             />
+
+            <div className="absolute top-6 right-6 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full text-xs text-slate-300 flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+              <FiZoomIn />
+              <span>Hover to Zoom</span>
+            </div>
           </div>
 
+          {/* Thumbnails */}
           {product.images && product.images.length > 1 && (
             <div className="flex gap-4 overflow-x-auto pb-2">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img.image)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                  className={`w-20 h-24 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
                     selectedImage === img.image ? "border-blue-500 scale-105" : "border-slate-800 opacity-60 hover:opacity-100"
                   }`}
                 >
@@ -117,15 +148,20 @@ export default function ProductDetailPage() {
           )}
         </div>
 
-        {/* Right: Details */}
+        {/* Right: Product Specs */}
         <div className="space-y-6">
           
           <div>
             <div className="flex items-center gap-3 text-xs mb-2">
-              <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
-                {product.category_detail?.name || product.category || "General"}
+              <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
+                {product.category_detail?.name || product.category || "Apparel"}
               </span>
-              <span className="text-slate-400 font-semibold">{product.brand_detail?.name || product.brand}</span>
+              <span className="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 font-bold">
+                {product.gender === "MEN" ? "Men's Collection" : product.gender === "WOMEN" ? "Women's Collection" : "Unisex"}
+              </span>
+              {product.brand_detail?.name && (
+                <span className="text-slate-400 font-semibold">{product.brand_detail.name}</span>
+              )}
             </div>
             
             <h1 className="text-3xl sm:text-4xl font-black text-white">{product.name}</h1>
@@ -142,22 +178,28 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Price Tag */}
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center gap-4">
-            <span className="text-3xl font-black text-white">${currentPrice.toFixed(2)}</span>
+          {/* Pricing Box */}
+          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-4">
+            <span className="text-3xl font-black text-white">
+              Rs. {currentPrice.toLocaleString()}
+            </span>
+
             {discountPrice && (
-              <span className="text-lg text-slate-500 line-through">${price.toFixed(2)}</span>
+              <span className="text-lg text-slate-500 line-through">
+                Rs. {price.toLocaleString()}
+              </span>
             )}
-            {discountPrice && (
-              <span className="text-xs bg-red-500/20 text-red-400 font-bold px-2.5 py-1 rounded-full border border-red-500/30">
-                Save ${(price - discountPrice).toFixed(2)}
+
+            {discountPercent > 0 && (
+              <span className="text-xs bg-red-500/20 text-red-400 font-bold px-3 py-1 rounded-full border border-red-500/30">
+                {discountPercent}% OFF
               </span>
             )}
           </div>
 
           <p className="text-slate-300 text-sm leading-relaxed">{product.description}</p>
 
-          {/* Quantity and Add to Cart */}
+          {/* Quantity and Actions */}
           <div className="pt-4 border-t border-slate-800 space-y-4">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold text-slate-400">Quantity</span>
@@ -196,49 +238,24 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Guarantees */}
+          {/* Value Props */}
           <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-800 text-center">
             <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
               <FiTruck className="text-lg text-blue-400 mx-auto mb-1" />
-              <span className="text-[10px] font-semibold text-slate-300 block">Express Delivery</span>
+              <span className="text-[10px] font-semibold text-slate-300 block">Cash on Delivery</span>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
               <FiShield className="text-lg text-indigo-400 mx-auto mb-1" />
-              <span className="text-[10px] font-semibold text-slate-300 block">2 Year Warranty</span>
+              <span className="text-[10px] font-semibold text-slate-300 block">Original Quality</span>
             </div>
             <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800">
               <FiRefreshCw className="text-lg text-purple-400 mx-auto mb-1" />
-              <span className="text-[10px] font-semibold text-slate-300 block">30 Day Returns</span>
+              <span className="text-[10px] font-semibold text-slate-300 block">Easy Returns</span>
             </div>
           </div>
 
         </div>
 
-      </div>
-
-      {/* Customer Reviews Section */}
-      <div className="glass-card rounded-3xl p-8 border border-slate-800">
-        <h3 className="text-xl font-bold text-white mb-6">Customer Reviews</h3>
-        
-        {product.reviews && product.reviews.length > 0 ? (
-          <div className="space-y-4">
-            {product.reviews.map((rev) => (
-              <div key={rev.id} className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-sm text-slate-200">{rev.user_name}</span>
-                  <div className="flex text-amber-400 text-xs">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <FiStar key={i} className="fill-amber-400" />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-400">{rev.comment}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-slate-500">No reviews yet for this product.</p>
-        )}
       </div>
 
     </div>

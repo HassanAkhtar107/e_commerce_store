@@ -5,6 +5,9 @@ from .models import Order, OrderItem
 from .serializers import OrderSerializer
 from cart.models import Cart
 from products.models import Product
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -25,6 +28,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         email = request.data.get("email")
         phone_number = request.data.get("phone_number", "")
         shipping_address_text = request.data.get("shipping_address_text")
+        payment_method = request.data.get("payment_method", "COD")
 
         if not full_name or not email or not shipping_address_text:
             return Response({"error": "Full name, email, and shipping address are required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -46,6 +50,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             phone_number=phone_number,
             shipping_address_text=shipping_address_text,
             total_amount=cart.total_price,
+            payment_method=payment_method,
             payment_status="PENDING",
             order_status="PENDING"
         )
@@ -57,7 +62,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 price=cart_item.product.current_price,
                 quantity=cart_item.quantity
             )
-            # Update product stock
+            # Update product stock safely
             if cart_item.product.stock >= cart_item.quantity:
                 cart_item.product.stock -= cart_item.quantity
                 cart_item.product.save()
@@ -67,3 +72,22 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
+    def dashboard_stats(self, request):
+        total_products = Product.objects.count()
+        total_orders = Order.objects.count()
+        pending_orders = Order.objects.filter(order_status="PENDING").count()
+        completed_orders = Order.objects.filter(order_status="DELIVERED").count()
+        total_customers = User.objects.count()
+
+        recent_orders = OrderSerializer(Order.objects.all()[:5], many=True).data
+
+        return Response({
+            "total_products": total_products,
+            "total_orders": total_orders,
+            "pending_orders": pending_orders,
+            "completed_orders": completed_orders,
+            "total_customers": total_customers,
+            "recent_orders": recent_orders
+        }, status=status.HTTP_200_OK)

@@ -42,7 +42,7 @@ const request = async (endpoint, options = {}) => {
 };
 
 export const api = {
-  // Products
+  // Products Catalog APIs
   getProducts: (params = "") => request(`/products/${params}`),
   getProductBySlug: (slug) => request(`/products/${slug}/`),
   getCategories: () => request(`/categories/`),
@@ -52,7 +52,7 @@ export const api = {
     body: JSON.stringify(reviewData)
   }),
 
-  // Cart
+  // Cart APIs
   getCart: () => request(`/cart/`),
   addToCart: (productId, quantity = 1) => request(`/cart/add_item/`, {
     method: "POST",
@@ -68,18 +68,19 @@ export const api = {
   }),
   clearCart: () => request(`/cart/clear/`, { method: "POST" }),
 
-  // Orders & Checkout
+  // Orders & Checkout APIs
   createOrder: (orderData) => request(`/orders/create_order/`, {
     method: "POST",
     body: JSON.stringify(orderData)
   }),
   getOrders: () => request(`/orders/`),
+  getDashboardStats: () => request(`/orders/dashboard_stats/`),
   createPaymentIntent: (orderNumber) => request(`/payments/create-intent/`, {
     method: "POST",
     body: JSON.stringify({ order_number: orderNumber })
   }),
 
-  // Authentication
+  // Auth APIs
   login: (credentials) => request(`/login/`, {
     method: "POST",
     body: JSON.stringify(credentials)

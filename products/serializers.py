@@ -40,13 +40,14 @@ class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     current_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    discount_percentage = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Product
         fields = [
             "id", "name", "slug", "sku", "category", "category_detail",
-            "brand", "brand_detail", "description", "short_description",
-            "price", "discount_price", "current_price", "stock",
+            "brand", "brand_detail", "gender", "description", "short_description",
+            "price", "discount_price", "current_price", "discount_percentage", "stock",
             "is_available", "is_featured", "rating", "num_reviews",
             "images", "reviews", "created_at", "updated_at"
         ]
