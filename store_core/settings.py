@@ -3,8 +3,9 @@ Django settings for store_core project (E-Commerce Store).
 """
 
 import os
+import environ
+
 try:
-    import environ
     env = environ.Env()
     HAS_ENVIRON = True
 except ImportError:
@@ -117,12 +118,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "store_core.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": os.environ.get("POSTGRES_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.environ.get("POSTGRES_DB", os.path.join(BASE_DIR, "db.sqlite3")),
+POSTGRES_ENGINE = env.str("POSTGRES_ENGINE", default="django.db.backends.postgresql")
+POSTGRES_DB = env.str("POSTGRES_DB", default="")
+POSTGRES_USER = env.str("POSTGRES_USER", default="")
+POSTGRES_PASSWORD = env.str("POSTGRES_PASSWORD", default="")
+POSTGRES_HOST = env.str("POSTGRES_HOST", default="")
+POSTGRES_PORT = env.str("POSTGRES_PORT", default="5432")
+
+if POSTGRES_DB and POSTGRES_HOST:
+    DATABASES = {
+        "default": {
+            "ENGINE": POSTGRES_ENGINE,
+            "NAME": POSTGRES_DB,
+            "USER": POSTGRES_USER,
+            "PASSWORD": POSTGRES_PASSWORD,
+            "HOST": POSTGRES_HOST,
+            "PORT": POSTGRES_PORT,
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
+    }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
