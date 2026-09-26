@@ -94,7 +94,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      
+
       {/* Breadcrumb */}
       <div className="text-xs text-slate-400 mb-8 flex items-center gap-2">
         <span onClick={() => router.push("/")} className="hover:text-white cursor-pointer">Home</span>
@@ -106,7 +106,7 @@ export default function ProductDetailPage() {
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-        
+
         {/* Left: Gallery with Image Zoom */}
         <div className="space-y-4">
           <div
@@ -137,9 +137,8 @@ export default function ProductDetailPage() {
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(img.image)}
-                  className={`w-20 h-24 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
-                    selectedImage === img.image ? "border-blue-500 scale-105" : "border-slate-800 opacity-60 hover:opacity-100"
-                  }`}
+                  className={`w-20 h-24 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${selectedImage === img.image ? "border-blue-500 scale-105" : "border-slate-800 opacity-60 hover:opacity-100"
+                    }`}
                 >
                   <img src={img.image} alt="" className="w-full h-full object-cover" />
                 </button>
@@ -150,7 +149,7 @@ export default function ProductDetailPage() {
 
         {/* Right: Product Specs */}
         <div className="space-y-6">
-          
+
           <div>
             <div className="flex items-center gap-3 text-xs mb-2">
               <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
@@ -163,7 +162,7 @@ export default function ProductDetailPage() {
                 <span className="text-slate-400 font-semibold">{product.brand_detail.name}</span>
               )}
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl font-black text-white">{product.name}</h1>
 
             {/* Rating */}
@@ -226,11 +225,10 @@ export default function ProductDetailPage() {
             <div className="flex gap-4">
               <button
                 onClick={handleAddToCart}
-                className={`flex-1 py-4 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all ${
-                  added
+                className={`flex-1 py-4 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-all ${added
                     ? "bg-emerald-600 text-white"
                     : "btn-gradient text-white shadow-blue-500/25"
-                }`}
+                  }`}
               >
                 {added ? <FiCheck className="text-lg" /> : <FiShoppingBag className="text-lg" />}
                 <span>{added ? "Added to Cart!" : "Add to Shopping Cart"}</span>
