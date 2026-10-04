@@ -39,7 +39,8 @@ export default function LoginPage() {
       if (res.user?.user_type === "ADMIN" || res.user?.is_staff) {
         router.push("/admin/dashboard");
       } else {
-        router.push("/");
+        // router.push("/");
+        window.location.href = "/";
       }
     } catch (err) {
       const msg = err?.message || "";

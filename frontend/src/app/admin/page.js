@@ -30,19 +30,13 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
-    console.log("1")
     if (!formData.username.trim() || !formData.password.trim()) {
       setErrorMsg("Please enter both username and password.");
       return;
     }
-    console.log("2")
     try {
-      console.log("3")
       setLoading(true);
-      console.log("4")
       const res = await api.login(formData);
-      console.log("formData", formData);
-      console.log("5")
       const userType = res.user?.user_type;
       const isStaff = res.user?.is_staff;
 

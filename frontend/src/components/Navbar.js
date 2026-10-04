@@ -23,7 +23,7 @@ export default function Navbar() {
           const parsed = JSON.parse(storedUser);
           setUser(parsed);
           setIsAdmin(userType === "ADMIN" || parsed?.is_staff);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }, []);
@@ -48,7 +48,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 glass-nav transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
+
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
@@ -77,7 +77,7 @@ export default function Navbar() {
             <Link href="/products" className="hover:text-blue-400 transition-colors">Products</Link>
             <Link href="/products?is_featured=true" className="hover:text-blue-400 transition-colors">Featured</Link>
             <Link href="/orders" className="hover:text-blue-400 transition-colors">Orders</Link>
-            {isAdmin && (
+            {/* {isAdmin && (
               <Link
                 href="/admin/dashboard"
                 className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition-colors"
@@ -85,12 +85,12 @@ export default function Navbar() {
                 <FiSettings className="text-xs" />
                 Admin
               </Link>
-            )}
+            )} */}
           </nav>
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
-            
+
             {/* Cart Icon Button */}
             <button
               onClick={() => setIsCartOpen(true)}
