@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiShoppingBag, FiSearch, FiUser, FiMenu, FiX, FiLogOut } from "react-icons/fi";
+import { FiShoppingBag, FiSearch, FiUser, FiMenu, FiX, FiLogOut, FiSettings } from "react-icons/fi";
 import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
@@ -11,14 +11,18 @@ export default function Navbar() {
   const { cartCount, setIsCartOpen } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
+      const userType = localStorage.getItem("user_type");
       if (storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
+          const parsed = JSON.parse(storedUser);
+          setUser(parsed);
+          setIsAdmin(userType === "ADMIN" || parsed?.is_staff);
         } catch (e) {}
       }
     }
@@ -34,7 +38,9 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_type");
     setUser(null);
+    setIsAdmin(false);
     router.push("/");
   };
 
@@ -71,6 +77,15 @@ export default function Navbar() {
             <Link href="/products" className="hover:text-blue-400 transition-colors">Products</Link>
             <Link href="/products?is_featured=true" className="hover:text-blue-400 transition-colors">Featured</Link>
             <Link href="/orders" className="hover:text-blue-400 transition-colors">Orders</Link>
+            {isAdmin && (
+              <Link
+                href="/admin/dashboard"
+                className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                <FiSettings className="text-xs" />
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Right Actions */}
@@ -92,18 +107,29 @@ export default function Navbar() {
 
             {/* User Auth Dropdown */}
             {user ? (
-              <div className="flex items-center gap-3 bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-700/60">
-                <FiUser className="text-blue-400" />
-                <span className="text-xs font-semibold text-slate-200 max-w-[100px] truncate">
-                  {user.name || user.username}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  title="Logout"
-                  className="text-slate-400 hover:text-red-400 transition-colors ml-1"
-                >
-                  <FiLogOut className="text-sm" />
-                </button>
+              <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-purple-300 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
+                  >
+                    <FiSettings className="text-xs" />
+                    Dashboard
+                  </Link>
+                )}
+                <div className="flex items-center gap-3 bg-slate-800/80 px-3.5 py-1.5 rounded-full border border-slate-700/60">
+                  <FiUser className="text-blue-400" />
+                  <span className="text-xs font-semibold text-slate-200 max-w-[100px] truncate">
+                    {user.name || user.username}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    title="Logout"
+                    className="text-slate-400 hover:text-red-400 transition-colors ml-1"
+                  >
+                    <FiLogOut className="text-sm" />
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
@@ -147,9 +173,14 @@ export default function Navbar() {
             <FiSearch className="absolute left-3 top-2.5 text-slate-400" />
           </form>
 
-          <Link href="/" className="block py-2 text-slate-300 hover:text-white">Home</Link>
-          <Link href="/products" className="block py-2 text-slate-300 hover:text-white">Products Catalog</Link>
-          <Link href="/orders" className="block py-2 text-slate-300 hover:text-white">My Orders</Link>
+          <Link href="/" className="block py-2 text-slate-300 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+          <Link href="/products" className="block py-2 text-slate-300 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>Products Catalog</Link>
+          <Link href="/orders" className="block py-2 text-slate-300 hover:text-white" onClick={() => setIsMobileMenuOpen(false)}>My Orders</Link>
+          {isAdmin && (
+            <Link href="/admin/dashboard" className="block py-2 text-purple-400 hover:text-purple-300 font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
+              ⚙ Admin Dashboard
+            </Link>
+          )}
           {!user && (
             <div className="flex gap-4 pt-2 border-t border-slate-800">
               <Link href="/login" className="flex-1 text-center py-2 text-sm font-semibold text-slate-300 border border-slate-700 rounded-lg">Log In</Link>

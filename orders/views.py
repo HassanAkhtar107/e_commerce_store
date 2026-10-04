@@ -73,15 +73,20 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
     def dashboard_stats(self, request):
+        # Only allow admins/staff to view stats
+        user = request.user
+        if not (user.is_staff or getattr(user, "user_type", None) == "ADMIN"):
+            return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+
         total_products = Product.objects.count()
         total_orders = Order.objects.count()
         pending_orders = Order.objects.filter(order_status="PENDING").count()
         completed_orders = Order.objects.filter(order_status="DELIVERED").count()
         total_customers = User.objects.count()
 
-        recent_orders = OrderSerializer(Order.objects.all()[:5], many=True).data
+        recent_orders = OrderSerializer(Order.objects.order_by("-created_at")[:10], many=True).data
 
         return Response({
             "total_products": total_products,
@@ -89,5 +94,5 @@ class OrderViewSet(viewsets.ModelViewSet):
             "pending_orders": pending_orders,
             "completed_orders": completed_orders,
             "total_customers": total_customers,
-            "recent_orders": recent_orders
+            "recent_orders": recent_orders,
         }, status=status.HTTP_200_OK)

@@ -8,6 +8,26 @@ import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { usePathname } from "next/navigation";
+
+function AppShell({ children }) {
+  const pathname = usePathname();
+  // Admin dashboard has its own full-page layout — no shared navbar/footer
+  const isAdminDashboard = pathname?.startsWith("/admin/dashboard");
+
+  if (isAdminDashboard) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Navbar />
+      <CartDrawer />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </>
+  );
+}
 
 export default function RootLayout({ children }) {
   return (
@@ -18,12 +38,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
         <CartProvider>
-          <Navbar />
-          <CartDrawer />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
+          <AppShell>{children}</AppShell>
           <ToastContainer
             position="bottom-right"
             autoClose={3000}

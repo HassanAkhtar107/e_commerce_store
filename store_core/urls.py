@@ -7,20 +7,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from payments.views import CreatePaymentIntentView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", include("store_core.api_router")),
+    path("api/payments/create-intent/", CreatePaymentIntentView.as_view(), name="create-payment-intent"),
 ]
 
 try:
     from rest_framework import permissions
     from drf_yasg.views import get_schema_view
     from drf_yasg import openapi
-    from payments.views import CreatePaymentIntentView
-
-    urlpatterns += [
-        path("api/", include("store_core.api_router")),
-        path("api/payments/create-intent/", CreatePaymentIntentView.as_view(), name="create-payment-intent"),
-    ]
 
     api_info = openapi.Info(
         title="E-Commerce Store API",
@@ -37,7 +35,7 @@ try:
     urlpatterns += [
         path("api-docs/", schema_view.with_ui("swagger", cache_timeout=0), name="api_docs")
     ]
-except ImportError:
+except Exception:
     pass
 
 admin.site.site_header = "E-Commerce Store Admin"

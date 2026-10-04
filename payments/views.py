@@ -1,11 +1,16 @@
-import stripe
+try:
+    import stripe
+except ImportError:
+    stripe = None
+
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from orders.models import Order
 
-stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+if stripe:
+    stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", "")
 
 
 class CreatePaymentIntentView(APIView):

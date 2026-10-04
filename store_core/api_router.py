@@ -16,7 +16,8 @@ from users.api.views import (
 from products.views import (
     CategoryViewSet,
     BrandViewSet,
-    ProductViewSet
+    ProductViewSet,
+    AdminProductViewSet,
 )
 from cart.views import CartViewSet
 from orders.views import OrderViewSet
@@ -26,7 +27,7 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-# Auth & User Routes
+# ── Auth & User Routes ────────────────────────────────────────────────────────
 router.register("users", UserViewSet, basename="users")
 router.register("signup", SignupViewSet, basename="signup")
 router.register("login", LoginViewSet, basename="login")
@@ -39,12 +40,17 @@ router.register("addresses", ShippingAddressViewSet, basename="addresses")
 router.register("delete-user", deleteUserView, basename="delete-user")
 router.register("admin_users", AdminUserViewSet, basename="admin-users")
 
-# E-Commerce Routes
+# ── Public / User-Facing Store Routes ─────────────────────────────────────────
+# /api/products/ — only returns is_available=True products (storefront)
 router.register("categories", CategoryViewSet, basename="categories")
 router.register("brands", BrandViewSet, basename="brands")
 router.register("products", ProductViewSet, basename="products")
 router.register("cart", CartViewSet, basename="cart")
 router.register("orders", OrderViewSet, basename="orders")
+
+# ── Admin-Only Routes ─────────────────────────────────────────────────────────
+# /api/admin/products/ — all products including inactive, requires ADMIN auth
+router.register("admin/products", AdminProductViewSet, basename="admin-products")
 
 app_name = "api"
 urlpatterns = router.urls

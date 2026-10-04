@@ -215,8 +215,13 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 12,
 }
 
+from corsheaders.defaults import default_headers
+
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-session-id",
+]
 
 CELERY_BROKER_URL = env.str("REDIS_URL", default="redis://redis:6379")
 CELERY_RESULT_BACKEND = env.str("REDIS_URL", default="redis://redis:6379")
