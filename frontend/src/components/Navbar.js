@@ -72,29 +72,16 @@ export default function Navbar() {
           </form>
 
           {/* Nav Links */}
-          <nav className="hidden lg:flex items-center space-x-8 text-sm font-medium text-slate-300">
+          <nav className="hidden lg:flex items-center gap-4 text-sm font-medium text-slate-300">
             <Link href="/" className="hover:text-blue-400 transition-colors">Home</Link>
             <Link href="/products" className="hover:text-blue-400 transition-colors">Products</Link>
             <Link href="/products?is_featured=true" className="hover:text-blue-400 transition-colors">Featured</Link>
             <Link href="/orders" className="hover:text-blue-400 transition-colors">Orders</Link>
-            {/* {isAdmin && (
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-1.5 text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                <FiSettings className="text-xs" />
-                Admin
-              </Link>
-            )} */}
-          </nav>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-4">
 
             {/* Cart Icon Button */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-200 hover:text-white transition-all duration-200"
+              className="relative p-2 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-200 hover:text-white transition-all duration-200"
               aria-label="View Cart"
             >
               <FiShoppingBag className="text-xl" />
@@ -147,15 +134,15 @@ export default function Navbar() {
                 </Link>
               </div>
             )}
+          </nav>
 
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-slate-300 hover:text-white"
-            >
-              {isMobileMenuOpen ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
-            </button>
-          </div>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden md:flex p-2 text-slate-300 hover:text-white"
+          >
+            {isMobileMenuOpen ? <FiX className="text-2xl" /> : <FiMenu className="text-2xl" />}
+          </button>
         </div>
       </div>
 
