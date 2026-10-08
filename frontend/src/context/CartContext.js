@@ -26,7 +26,7 @@ function saveLocalCart(cart) {
   } catch { }
 }
 
-function recalcCart(items) {
+function recalCart(items) {
   const total_items = items.reduce((acc, item) => acc + item.quantity, 0);
   const total_price = items.reduce((acc, item) => acc + Number(item.subtotal || 0), 0);
   return { items, total_items, total_price };
@@ -110,7 +110,7 @@ export const CartProvider = ({ children }) => {
         });
       }
 
-      const updated = recalcCart(newItems);
+      const updated = recalCart(newItems);
       saveLocalCart(updated);
       return updated;
     });
@@ -143,7 +143,7 @@ export const CartProvider = ({ children }) => {
         })
         .filter(Boolean);
 
-      const updated = recalcCart(newItems);
+      const updated = recalCart(newItems);
       saveLocalCart(updated);
       return updated;
     });
@@ -166,7 +166,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = useCallback(async (itemId) => {
     setCart((prev) => {
       const newItems = prev.items.filter((item) => item.id !== itemId);
-      const updated = recalcCart(newItems);
+      const updated = recalCart(newItems);
       saveLocalCart(updated);
       return updated;
     });
